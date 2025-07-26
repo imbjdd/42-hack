@@ -1,0 +1,77 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id_carte": "CSI_12",
+        "scenario": "02Moy",
+        "typ_inond1": "01"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [0.540, 46.815],
+          [0.545, 46.815],
+          [0.545, 46.820],
+          [0.540, 46.820],
+          [0.540, 46.815]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id_carte": "CSI_8",
+        "scenario": "01For",
+        "typ_inond1": "01"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [0.545, 46.810],
+          [0.550, 46.810],
+          [0.550, 46.815],
+          [0.545, 46.815],
+          [0.545, 46.810]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id_carte": "CSI_16",
+        "scenario": "04Fai",
+        "typ_inond1": "01"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [0.535, 46.820],
+          [0.540, 46.820],
+          [0.540, 46.825],
+          [0.535, 46.825],
+          [0.535, 46.820]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id_carte": "CSI_4",
+        "scenario": "",
+        "typ_inond1": "01"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [0.550, 46.820],
+          [0.555, 46.820],
+          [0.555, 46.825],
+          [0.550, 46.825],
+          [0.550, 46.820]
+        ]]
+      }
+    }
+  ]
+}
