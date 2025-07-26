@@ -1,5 +1,5 @@
 """
-Agent spécialisé dans l'analyse des projets immobiliers.
+Specialized agent for real estate projects analysis.
 """
 
 from agents import Agent, Runner, WebSearchTool
@@ -18,26 +18,26 @@ current_date = datetime.now()
 
 
 REAL_ESTATE_AGENT_PROMPT = f"""
-Tu analyses les projets immobiliers pour une zone donnée.
+You analyze real estate projects for a given area.
 
-TÂCHE: Retourne rapidement un objet RealEstateProjectsData avec:
-- total_projects: nombre total de projets
-- projects: liste de RealEstateProject avec nom, promoteur, nombre d'unités, année de livraison, prix min/max, type
-- average_price_per_sqm: prix moyen au m²
+TASK: Quickly return a RealEstateProjectsData object with:
+- total_projects: total number of projects
+- projects: list of RealEstateProject with name, developer, number of units, delivery year, min/max price, type
+- average_price_per_sqm: average price per sqm
 - market_trend: "Growing"/"Stable"/"Declining"  
-- investment_attractivity_score: note sur 10
+- investment_attractivity_score: score out of 10
 
-RÈGLES:
-- Utilise geocode_address pour localiser
-- Fais UNE recherche: "programme immobilier neuf [zone] 2024"
-- Réponds en moins de 2 minutes  
-- Estime des projets réalistes si pas de données précises
+RULES:
+- Use geocode_address to locate
+- Make ONE search: "new real estate program [zone] 2024"
+- Respond in less than 2 minutes  
+- Estimate realistic projects if no precise data
 """
 
 
 
 def create_real_estate_agent() -> Agent:
-    """Crée l'agent d'analyse des projets immobiliers."""
+    """Creates the real estate projects analysis agent."""
     
     
     return Agent(
@@ -55,16 +55,16 @@ agent = create_real_estate_agent
 @function_tool
 async def analyze_real_estate_projects(zone_address: str) -> RealEstateProjectsData:
     """
-    Analyse les projets immobiliers dans une zone donnée.
+    Analyze real estate projects in a given area.
     
     Args:
-        zone_address: Adresse ou description de la zone à analyser
+        zone_address: Address or description of the area to analyze
         
     Returns:
-        RealEstateProjectsData: Données structurées sur les projets immobiliers
+        RealEstateProjectsData: Structured data on real estate projects
     """
 
     
-    result = await Runner.run(agent, f"Voici la zone {zone_address} retourne moi ton analyse",max_turns=3)
+    result = await Runner.run(agent, f"Here is the area {zone_address}, return your analysis",max_turns=3)
     
     return result.final_output

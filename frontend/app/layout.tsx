@@ -3,8 +3,8 @@ import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'RevAgent - Évaluation Immobilière',
-  description: 'Système d\'évaluation immobilière intelligent',
+  title: 'RevAgent - Real Estate Evaluation',
+  description: 'Intelligent real estate evaluation system',
 }
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
         <ThemeProvider
           attribute="class"

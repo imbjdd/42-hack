@@ -46,8 +46,8 @@ export default function Page() {
 
   return (
     <div className="h-screen bg-background text-black flex">
-      <div className={hasMessages ? "flex-1 border-r border-border" : "w-full flex justify-center"}>
-        <div className={hasMessages ? "w-full h-full flex flex-col" : "w-full max-w-4xl h-full"}>
+      <div className={hasMessages ? "flex-1 border-r border-border h-screen" : "w-full flex justify-center"}>
+        <div className={hasMessages ? "w-full h-screen flex flex-col" : "w-full max-w-4xl h-full"}>
           {hasMessages && (
             <div className="flex items-center gap-2 p-4 border-b border-border bg-background/95 backdrop-blur-sm flex-shrink-0">
               <Button
@@ -61,13 +61,13 @@ export default function Page() {
               </Button>
             </div>
           )}
-          <div className="flex-1">
+          <div className="flex-1 min-h-0">
             <Chat id={id} selectedArea={selectedArea} onMapActions={handleMapActions}  onFirstMessage={handleFirstMessage} />
           </div>
         </div>
       </div>
       {hasMessages && (
-        <div className="w-1/2">
+        <div className="w-1/2 h-screen">
           <MapInterface onAreaSelect={handleAreaSelect} mapActions={mapActions} />
         </div>
       )}

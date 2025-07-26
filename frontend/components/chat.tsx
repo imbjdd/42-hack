@@ -51,55 +51,53 @@ export function Chat({
   const sendMessage = async (content: string, forceAnalysis: boolean = false) => {
     if (!content.trim() || status !== 'idle') return
 
-    setStatus('submitted')
-    
-    // Construire le contenu du message
+    // Build message content
     let messageContent = content.trim()
     
-    // Toujours inclure les données de zone si disponibles (pour le contexte)
+    // Always include area data if available (for context)
     if (selectedArea) {
       const areaInfo = `
 
-CONTEXTE - ZONE DESSINÉE SUR LA CARTE:
-- Adresse: ${selectedArea.locationInfo.address}
-- Centre: [${selectedArea.locationInfo.center[1]}, ${selectedArea.locationInfo.center[0]}] (lat, lng)
-- Superficie: ${(selectedArea.locationInfo.area / 1000000).toFixed(2)} km²
-- Coordonnées: ${selectedArea.coordinates.length} points
-- Limites: SW[${selectedArea.locationInfo.bounds[0][1]}, ${selectedArea.locationInfo.bounds[0][0]}] NE[${selectedArea.locationInfo.bounds[1][1]}, ${selectedArea.locationInfo.bounds[1][0]}]
+CONTEXT - AREA DRAWN ON MAP:
+- Address: ${selectedArea.locationInfo.address}
+- Center: [${selectedArea.locationInfo.center[1]}, ${selectedArea.locationInfo.center[0]}] (lat, lng)
+- Area: ${(selectedArea.locationInfo.area / 1000000).toFixed(2)} km²
+- Coordinates: ${selectedArea.coordinates.length} points
+- Bounds: SW[${selectedArea.locationInfo.bounds[0][1]}, ${selectedArea.locationInfo.bounds[0][0]}] NE[${selectedArea.locationInfo.bounds[1][1]}, ${selectedArea.locationInfo.bounds[1][0]}]
 
-${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pour analyser cette zone.' : 'INFO: Ces données sont disponibles si tu as besoin d\'analyser cette zone.'}`
+${forceAnalysis ? 'INSTRUCTION: Use analyze_drawn_area with this data to analyze this area.' : 'INFO: This data is available if you need to analyze this area.'}`
       
       messageContent += areaInfo
     }
     
-    // Ajouter le message utilisateur
+    // Add user message IMMEDIATELY (without loading state)
     const userMessage: Message = {
       id: generateUUID(),
       role: 'user',
-      content: content.trim(), // Afficher seulement le message original à l'utilisateur
+      content: content.trim(), // Display only the original message to user
       timestamp: new Date().toISOString(),
     }
     
     setMessages(prev => [...prev, userMessage])
     setInput('')
 
-    // Si c'est le premier message, déclencher l'affichage de la carte
+    // If this is the first message, trigger map display
     if (messages.length === 0) {
       onFirstMessage?.()
     }
 
-    // Créer le message assistant vide pour le streaming
+    // Create empty assistant message for streaming
     const assistantMessageId = generateUUID()
     
     try {
-      // Utiliser l'endpoint streaming
+      // Use streaming endpoint
       const response = await fetch('http://localhost:8000/chat/stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: messageContent, // Envoyer le message complet avec les données de zone
+          message: messageContent, // Send complete message with area data
           session_id: sessionId,
         }),
       })
@@ -108,7 +106,7 @@ ${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pou
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      setStatus('streaming') // Commencer le streaming
+      setStatus('streaming') // Start streaming
 
       const reader = response.body?.getReader()
       const decoder = new TextDecoder()
@@ -124,7 +122,7 @@ ${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pou
           
           buffer += decoder.decode(value, { stream: true })
           const lines = buffer.split('\n')
-          buffer = lines.pop() || '' // Garder la ligne incomplète
+          buffer = lines.pop() || '' // Keep incomplete line
           
           for (const line of lines) {
             if (line.startsWith('data: ')) {
@@ -132,12 +130,12 @@ ${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pou
                 const chunk = JSON.parse(line.slice(6))
                 console.log('Received chunk:', chunk) // Debug
                 
-                // Le backend envoie {type: "chunk", chunk: "text"} ou {type: "final", message: "..."}
+                // Backend sends {type: "chunk", chunk: "text"} or {type: "final", message: "..."}
                 const content = chunk.chunk || chunk.message || ''
                 
                 if (chunk.type === 'chunk' && content) {
                   if (!assistantMessageCreated) {
-                    // Créer le message assistant au premier chunk
+                    // Create assistant message on first chunk
                     const assistantMessage: Message = {
                       id: assistantMessageId,
                       role: 'assistant',
@@ -147,7 +145,7 @@ ${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pou
                     setMessages(prev => [...prev, assistantMessage])
                     assistantMessageCreated = true
                   } else {
-                    // Mettre à jour le contenu du message
+                    // Update message content
                     setMessages(prev => prev.map(msg => 
                       msg.id === assistantMessageId 
                         ? { ...msg, content: msg.content + content }
@@ -155,11 +153,11 @@ ${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pou
                     ))
                   }
                 } else if (chunk.type === 'final') {
-                  // Message final, arrêter le streaming
+                  // Final message, stop streaming
                   console.log('Streaming finished')
                   setStatus('idle')
                   
-                  // Récupérer les actions de carte après la réponse complète
+                  // Get map actions after complete response
                   console.log('Final chunk metadata:', chunk.metadata)
                   if (chunk.metadata?.map_actions && chunk.metadata.map_actions.length > 0) {
                     console.log('Map actions received:', chunk.metadata.map_actions)
@@ -181,10 +179,10 @@ ${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pou
       console.error('Chat error:', error)
       toast({
         type: 'error',
-        description: 'Une erreur est survenue lors de l\'envoi du message.',
+        description: 'An error occurred while sending the message.',
       })
       
-      // Supprimer le message assistant en cas d'erreur si il a été créé
+      // Remove assistant message on error if it was created
       setMessages(prev => prev.filter(msg => msg.id !== assistantMessageId))
     } finally {
       setStatus('idle')
@@ -197,7 +195,7 @@ ${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pou
 
   const analyzeSelectedArea = () => {
     if (selectedArea) {
-      const analysisMessage = "Analyse cette zone dessinée sur la carte et identifie les éléments proches, les points d'intérêt, et les opportunités immobilières."
+      const analysisMessage = "Analyze this area drawn on the map and identify nearby elements, points of interest, and real estate opportunities."
       sendMessage(analysisMessage, true)
     }
   }
@@ -206,7 +204,7 @@ ${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pou
   useEffect(() => {
     if (selectedArea && selectedArea !== previousAreaRef.current) {
       console.log('New area selected:', selectedArea.locationInfo.address)
-      // La zone est maintenant disponible pour analyse si l'utilisateur le demande
+      // The area is now available for analysis if the user requests it
     }
     previousAreaRef.current = selectedArea
   }, [selectedArea])
@@ -217,12 +215,14 @@ ${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pou
 
   return (
     <div className="flex flex-col bg-background h-full">
-      <Messages 
-        messages={messages} 
-        isLoading={status === 'streaming'}
-      />
+      <div className="flex-1 min-h-0">
+        <Messages 
+          messages={messages} 
+          isLoading={status === 'streaming'}
+        />
+      </div>
       
-      <div className="border-t border-zinc-200 dark:border-zinc-700 p-4">
+      <div className="border-t border-zinc-200 dark:border-zinc-700 p-4 flex-shrink-0">
         {/* Area context indicator */}
         {selectedArea && (
           <div className="mb-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
@@ -230,7 +230,7 @@ ${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pou
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-green-600 dark:text-green-400" />
                 <span className="text-sm font-medium text-green-900 dark:text-green-100">
-                  Zone disponible: {selectedArea.locationInfo.address}
+                  Available area: {selectedArea.locationInfo.address}
                 </span>
               </div>
               <Button
@@ -240,11 +240,11 @@ ${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pou
                 disabled={status !== 'idle'}
                 className="text-green-600 border-green-300 hover:bg-green-100 dark:text-green-400 dark:border-green-600 dark:hover:bg-green-900/40"
               >
-                Analyser cette zone
+                Analyze this area
               </Button>
             </div>
             <p className="text-xs text-green-700 dark:text-green-300 mt-1">
-              Surface: {(selectedArea.locationInfo.area / 1000000).toFixed(2)} km² • {selectedArea.coordinates.length} points • Données envoyées au LLM
+              Area: {(selectedArea.locationInfo.area / 1000000).toFixed(2)} km² • {selectedArea.coordinates.length} points • Data sent to LLM
             </p>
           </div>
         )}

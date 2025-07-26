@@ -1,5 +1,5 @@
 """
-FastAPI server pour l'API du système d'évaluation immobilière.
+FastAPI server for the real estate evaluation system API.
 """
 
 from fastapi import FastAPI, HTTPException
@@ -14,7 +14,7 @@ from chat_session import ChatSessionManager
 
 app = FastAPI(title="RevAgent API", version="1.0.0")
 
-# CORS pour permettre les requêtes depuis Next.js
+# CORS to allow requests from Next.js
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # Next.js dev server
@@ -23,7 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Instance globale du gestionnaire de sessions
+# Global instance of the session manager
 session_manager = ChatSessionManager()
 
 class MessageRequest(BaseModel):
@@ -54,7 +54,7 @@ class AreaAnalysisRequest(BaseModel):
 @app.get("/")
 async def root():
     """Point d'entrée de l'API."""
-    return {"message": "RevAgent API - Système d'évaluation immobilière"}
+    return {"message": "RevAgent API - Real Estate Evaluation System"}
 
 @app.post("/chat", response_model=MessageResponse)
 async def chat(request: MessageRequest):
@@ -63,11 +63,11 @@ async def chat(request: MessageRequest):
     """
     print(f"Received request: {request}")  # Debug log
     try:
-        # Générer un session_id si non fourni
+        # Generate a session_id if not provided
         session_id = request.session_id or str(uuid.uuid4())
         print(f"Using session_id: {session_id}")  # Debug log
         
-        # Créer ou récupérer la session
+        # Create or retrieve the session
         chat_session = session_manager.get_or_create_session(session_id)
         
         # Envoyer le message
@@ -87,11 +87,11 @@ async def chat_stream(request: MessageRequest):
     """
     print(f"Received streaming request: {request}")  # Debug log
     try:
-        # Générer un session_id si non fourni
+        # Generate a session_id if not provided
         session_id = request.session_id or str(uuid.uuid4())
         print(f"Using session_id: {session_id}")  # Debug log
         
-        # Créer ou récupérer la session
+        # Create or retrieve the session
         chat_session = session_manager.get_or_create_session(session_id)
         
         async def generate_stream():
@@ -192,31 +192,31 @@ async def list_sessions():
 @app.post("/analyze-area", response_model=MessageResponse)
 async def analyze_area(request: AreaAnalysisRequest):
     """
-    Endpoint pour analyser une zone dessinée sur la carte.
+    Endpoint to analyze a drawn area on the map.
     """
     print(f"Received area analysis request: {request}")  # Debug log
     try:
-        # Générer un session_id si non fourni
+        # Generate a session_id if not provided
         session_id = request.session_id or str(uuid.uuid4())
         print(f"Using session_id: {session_id}")  # Debug log
         
-        # Créer ou récupérer la session
+        # Create or retrieve the session
         chat_session = session_manager.get_or_create_session(session_id)
         
-        # Construire le message d'analyse avec les données de zone
-        analysis_message = f"""Analyse cette zone dessinée sur la carte:
+        # Build the analysis message with area data
+        analysis_message = f"""Analyze this area drawn on the map:
 
-DONNÉES DE ZONE:
-- Adresse: {request.location_address}
-- Centre: [{request.area_center[1]}, {request.area_center[0]}] (lat, lng)
-- Superficie: {request.area_size_km2} km²
-- Coordonnées: {len(request.coordinates)} points du polygone
-- Limites SW: [{request.area_bounds[0][1]}, {request.area_bounds[0][0]}]
-- Limites NE: [{request.area_bounds[1][1]}, {request.area_bounds[1][0]}]
+AREA DATA:
+- Address: {request.location_address}
+- Center: [{request.area_center[1]}, {request.area_center[0]}] (lat, lng)
+- Area: {request.area_size_km2} km²
+- Coordinates: {len(request.coordinates)} polygon points
+- SW Bounds: [{request.area_bounds[0][1]}, {request.area_bounds[0][0]}]
+- NE Bounds: [{request.area_bounds[1][1]}, {request.area_bounds[1][0]}]
 
-Utilise analyze_drawn_area pour analyser cette zone et identifier les éléments proches, points d'intérêt, risques et opportunités."""
+Use analyze_drawn_area to analyze this area and identify nearby elements, points of interest, risks and opportunities."""
         
-        # Envoyer le message d'analyse
+        # Send the analysis message
         response = await chat_session.send_message(analysis_message)
         print(f"Analysis response: {response}")  # Debug log
         

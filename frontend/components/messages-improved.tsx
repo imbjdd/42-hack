@@ -38,7 +38,7 @@ export const Messages = memo(({ messages, isLoading = false }: MessagesProps) =>
         >
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
             <div className="w-8 h-8 bg-muted-foreground/20 rounded-full flex items-center justify-center">
-              <span className="text-lg">💬</span>
+              <span className="text-lg">Chat</span>
             </div>
           </div>
           <div className="space-y-2">
@@ -55,27 +55,16 @@ export const Messages = memo(({ messages, isLoading = false }: MessagesProps) =>
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden">
       <div className="flex-1 overflow-y-auto">
         <div className="space-y-4 p-4">
           {messages.map((message, index) => (
             <PreviewMessage
               key={message.id}
               message={message}
-              isLoading={isLoading && index === messages.length - 1}
+              isLoading={isLoading && message.role === 'assistant' && index === messages.length - 1}
             />
           ))}
-          {isLoading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
-            <PreviewMessage
-              message={{
-                id: 'loading',
-                role: 'assistant',
-                content: '',
-                timestamp: new Date().toISOString()
-              }}
-              isLoading={true}
-            />
-          )}
           <div ref={messagesEndRef} />
         </div>
       </div>
