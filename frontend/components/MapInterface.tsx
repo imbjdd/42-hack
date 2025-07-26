@@ -18,11 +18,30 @@ interface LocationInfo {
   area: number;
 }
 
-interface MapInterfaceProps {
-  onAreaSelect?: (areaData: { coordinates: number[][]; locationInfo: LocationInfo }) => void;
+interface MapAction {
+  action: string;
+  location?: string;
+  latitude?: number;
+  longitude?: number;
+  zoom_level?: number;
+  markers?: Array<{
+    lat: number;
+    lng: number;
+    label: string;
+    description?: string;
+    price?: number;
+    type?: string;
+    rooms?: number;
+  }>;
+  message: string;
 }
 
-const MapInterface: React.FC<MapInterfaceProps> = ({ onAreaSelect }) => {
+interface MapInterfaceProps {
+  onAreaSelect?: (areaData: { coordinates: number[][]; locationInfo: LocationInfo }) => void;
+  mapActions?: MapAction[];
+}
+
+const MapInterface: React.FC<MapInterfaceProps> = ({ onAreaSelect, mapActions = [] }) => {
   const [selectedTool, setSelectedTool] = useState<string>("hand");
   const [mapboxToken, setMapboxToken] = useState<string>(process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "");
 
@@ -90,6 +109,7 @@ const MapInterface: React.FC<MapInterfaceProps> = ({ onAreaSelect }) => {
           selectedTool={selectedTool}
           onToolChange={setSelectedTool}
           onAreaSelect={handleAreaSelect}
+          mapActions={mapActions}
         />
 
         {/* Token Input Overlay - Always show if no token */}

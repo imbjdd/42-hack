@@ -7,13 +7,32 @@ import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { MapPin, Key, AlertCircle } from 'lucide-react';
+import { MapPin, Key, AlertCircle, Loader2, CheckCircle, XCircle } from 'lucide-react';
+
+interface MapAction {
+  action: string;
+  location?: string;
+  latitude?: number;
+  longitude?: number;
+  zoom_level?: number;
+  markers?: Array<{
+    lat: number;
+    lng: number;
+    label: string;
+    description?: string;
+    price?: number;
+    type?: string;
+    rooms?: number;
+  }>;
+  message: string;
+}
 
 interface MapboxMapProps {
   onAreaSelect?: (coordinates: number[][], locationInfo: LocationInfo) => void;
   mapboxToken?: string;
   selectedTool?: string;
   onToolChange?: (tool: string) => void;
+  mapActions?: MapAction[];
 }
 
 interface LocationInfo {
@@ -27,13 +46,17 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
   onAreaSelect, 
   mapboxToken, 
   selectedTool = "hand",
-  onToolChange 
+  onToolChange,
+  mapActions = []
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const draw = useRef<MapboxDraw | null>(null);
   const selectedToolRef = useRef(selectedTool); // Track current tool for event handlers
   const [isMounted, setIsMounted] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<'idle' | 'locating' | 'found' | 'error'>('idle');
+  const [currentMarkers, setCurrentMarkers] = useState<any[]>([]);
 
   // Ensure component is mounted on client side
   useEffect(() => {
@@ -196,16 +219,59 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
         'top-right'
       );
 
-      // Add geolocate control
-      map.current.addControl(
-        new mapboxgl.GeolocateControl({
-          positionOptions: {
-            enableHighAccuracy: true
-          },
-          trackUserLocation: true
-        }),
-        'top-right'
-      );
+      // Add geolocate control with auto-trigger
+      const geolocateControl = new mapboxgl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true
+        },
+        trackUserLocation: true,
+        showUserHeading: true
+      });
+      
+      map.current.addControl(geolocateControl, 'top-right');
+      
+      // Auto-trigger geolocation on map load
+      map.current.on('load', () => {
+        console.log('Map loaded, attempting to get user location...');
+        setLocationStatus('locating');
+        setIsLocating(true);
+        geolocateControl.trigger();
+      });
+      
+      // Handle geolocation events
+      geolocateControl.on('geolocate', (e: any) => {
+        console.log('User location found:', e.coords);
+        const { longitude, latitude } = e.coords;
+        
+        setLocationStatus('found');
+        setIsLocating(false);
+        
+        // Center map on user location with smooth transition
+        map.current?.flyTo({
+          center: [longitude, latitude],
+          zoom: 15,
+          essential: true
+        });
+        
+        console.log(`Map centered on user location: ${latitude}, ${longitude}`);
+        
+        // Hide success message after 3 seconds
+        setTimeout(() => {
+          setLocationStatus('idle');
+        }, 3000);
+      });
+      
+      geolocateControl.on('error', (e: any) => {
+        console.warn('Geolocation error:', e);
+        console.log('Using default location (New York City)');
+        setLocationStatus('error');
+        setIsLocating(false);
+        
+        // Hide error message after 5 seconds
+        setTimeout(() => {
+          setLocationStatus('idle');
+        }, 5000);
+      });
 
       // Event handlers for draw events (both polygon and circle)
       map.current.on('draw.create', async (e: any) => {
@@ -264,6 +330,134 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
       draw.current.deleteAll();
     }
   }, [selectedTool, isDrawing, isCircleMode]);
+
+  // Handle map actions from LLM
+  useEffect(() => {
+    if (!map.current || mapActions.length === 0) return;
+
+    mapActions.forEach(action => {
+      console.log('Processing map action:', action);
+      
+      switch (action.action) {
+        case 'navigate_to':
+          if (action.latitude && action.longitude) {
+            map.current?.flyTo({
+              center: [action.longitude, action.latitude],
+              zoom: action.zoom_level || 15,
+              essential: true
+            });
+            console.log(`Navigated to: ${action.location}`);
+          }
+          break;
+          
+        case 'search_properties':
+          // Clear existing markers first
+          clearMarkers();
+          
+          // Add new property markers
+          if (action.markers && action.markers.length > 0) {
+            addPropertyMarkers(action.markers);
+            
+            // Navigate to the search area
+            if (action.latitude && action.longitude) {
+              map.current?.flyTo({
+                center: [action.longitude, action.latitude],
+                zoom: action.zoom_level || 13,
+                essential: true
+              });
+            }
+          }
+          break;
+          
+        case 'clear_markers':
+          clearMarkers();
+          break;
+          
+        case 'add_marker':
+          if (action.latitude && action.longitude) {
+            addSingleMarker({
+              lat: action.latitude,
+              lng: action.longitude,
+              label: action.location || 'Point d\'intérêt'
+            });
+          }
+          break;
+      }
+    });
+  }, [mapActions]);
+
+  const clearMarkers = () => {
+    if (!map.current) return;
+    
+    // Remove existing markers
+    currentMarkers.forEach(marker => {
+      marker.remove();
+    });
+    setCurrentMarkers([]);
+    console.log('All markers cleared');
+  };
+
+  const addPropertyMarkers = (markers: MapAction['markers']) => {
+    if (!map.current || !markers) return;
+    
+    const newMarkers: any[] = [];
+    
+    markers.forEach(markerData => {
+      // Create popup content
+      const popupContent = `
+        <div class="p-3">
+          <h3 class="font-semibold text-lg">${markerData.label}</h3>
+          <p class="text-sm text-gray-600 mt-1">${markerData.description || ''}</p>
+          ${markerData.price ? `<p class="font-bold text-lg text-blue-600 mt-2">${markerData.price.toLocaleString()}€</p>` : ''}
+        </div>
+      `;
+      
+      const popup = new mapboxgl.Popup({ offset: 25 })
+        .setHTML(popupContent);
+      
+      // Create marker element with custom styling for properties
+      const markerElement = document.createElement('div');
+      markerElement.style.width = '30px';
+      markerElement.style.height = '30px';
+      markerElement.style.borderRadius = '50%';
+      markerElement.style.backgroundColor = '#3B82F6';
+      markerElement.style.border = '3px solid white';
+      markerElement.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
+      markerElement.style.cursor = 'pointer';
+      markerElement.style.display = 'flex';
+      markerElement.style.alignItems = 'center';
+      markerElement.style.justifyContent = 'center';
+      markerElement.style.color = 'white';
+      markerElement.style.fontSize = '12px';
+      markerElement.style.fontWeight = 'bold';
+      markerElement.textContent = '€';
+      
+      const marker = new mapboxgl.Marker(markerElement)
+        .setLngLat([markerData.lng, markerData.lat])
+        .setPopup(popup)
+        .addTo(map.current!);
+      
+      newMarkers.push(marker);
+    });
+    
+    setCurrentMarkers(prev => [...prev, ...newMarkers]);
+    console.log(`Added ${markers.length} property markers`);
+  };
+
+  const addSingleMarker = (markerData: {lat: number, lng: number, label: string}) => {
+    if (!map.current) return;
+    
+    const popup = new mapboxgl.Popup({ offset: 25 })
+      .setHTML(`<div class="p-2"><p class="font-semibold">${markerData.label}</p></div>`);
+    
+    const marker = new mapboxgl.Marker()
+      .setLngLat([markerData.lng, markerData.lat])
+      .setPopup(popup)
+      .addTo(map.current);
+    
+    setCurrentMarkers(prev => [...prev, marker]);
+    console.log(`Added marker: ${markerData.label}`);
+  };
 
   // Handle polygon completion with comprehensive logging
   const handlePolygonComplete = async (coordinates: number[][]) => {
@@ -485,6 +679,38 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
             >
               Cancel
             </Button>
+          </div>
+        </Card>
+      )}
+      
+      {/* Location status overlay */}
+      {locationStatus !== 'idle' && (
+        <Card className="absolute top-20 left-1/2 transform -translate-x-1/2 p-4 shadow-elegant bg-card/95 backdrop-blur-md border-border/50 z-50">
+          <div className="flex items-center gap-3">
+            {locationStatus === 'locating' && (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <span className="text-sm font-medium text-foreground">
+                  🌍 Finding your location...
+                </span>
+              </>
+            )}
+            {locationStatus === 'found' && (
+              <>
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span className="text-sm font-medium text-foreground">
+                  📍 Location found! Map centered on your position
+                </span>
+              </>
+            )}
+            {locationStatus === 'error' && (
+              <>
+                <XCircle className="h-4 w-4 text-red-500" />
+                <span className="text-sm font-medium text-foreground">
+                  ❌ Location access denied. Using default location
+                </span>
+              </>
+            )}
           </div>
         </Card>
       )}

@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { generateUUID } from '@/lib/utils'
 import { Messages } from './messages'
 import { MultimodalInput } from './multimodal-input'
 import { toast } from './ui/toast'
+import { Button } from './ui/button'
+import { MapPin } from 'lucide-react'
 
 interface Message {
   id: string
@@ -25,6 +27,7 @@ export function Chat({
   initialMessages = [],
   selectedArea,
   onFirstMessage,
+  onMapActions,
 }: {
   id: string
   initialMessages?: Message[]
@@ -33,26 +36,47 @@ export function Chat({
     locationInfo: LocationInfo;
   } | null
   onFirstMessage?: () => void
+  onMapActions?: (actions: any[]) => void
 }) {
   const [sessionId] = useState<string>(id)
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [input, setInput] = useState<string>('')
   const [status, setStatus] = useState<'idle' | 'submitted' | 'streaming'>('idle')
+  const previousAreaRef = useRef<typeof selectedArea>(null)
 
   const handleInputChange = (value: string) => {
     setInput(value)
   }
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, forceAnalysis: boolean = false) => {
     if (!content.trim() || status !== 'idle') return
 
     setStatus('submitted')
+    
+    // Construire le contenu du message
+    let messageContent = content.trim()
+    
+    // Toujours inclure les données de zone si disponibles (pour le contexte)
+    if (selectedArea) {
+      const areaInfo = `
+
+CONTEXTE - ZONE DESSINÉE SUR LA CARTE:
+- Adresse: ${selectedArea.locationInfo.address}
+- Centre: [${selectedArea.locationInfo.center[1]}, ${selectedArea.locationInfo.center[0]}] (lat, lng)
+- Superficie: ${(selectedArea.locationInfo.area / 1000000).toFixed(2)} km²
+- Coordonnées: ${selectedArea.coordinates.length} points
+- Limites: SW[${selectedArea.locationInfo.bounds[0][1]}, ${selectedArea.locationInfo.bounds[0][0]}] NE[${selectedArea.locationInfo.bounds[1][1]}, ${selectedArea.locationInfo.bounds[1][0]}]
+
+${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pour analyser cette zone.' : 'INFO: Ces données sont disponibles si tu as besoin d\'analyser cette zone.'}`
+      
+      messageContent += areaInfo
+    }
     
     // Ajouter le message utilisateur
     const userMessage: Message = {
       id: generateUUID(),
       role: 'user',
-      content: content.trim(),
+      content: content.trim(), // Afficher seulement le message original à l'utilisateur
       timestamp: new Date().toISOString(),
     }
     
@@ -75,7 +99,7 @@ export function Chat({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: content.trim(),
+          message: messageContent, // Envoyer le message complet avec les données de zone
           session_id: sessionId,
         }),
       })
@@ -134,6 +158,15 @@ export function Chat({
                   // Message final, arrêter le streaming
                   console.log('Streaming finished')
                   setStatus('idle')
+                  
+                  // Récupérer les actions de carte après la réponse complète
+                  console.log('Final chunk metadata:', chunk.metadata)
+                  if (chunk.metadata?.map_actions && chunk.metadata.map_actions.length > 0) {
+                    console.log('Map actions received:', chunk.metadata.map_actions)
+                    onMapActions?.(chunk.metadata.map_actions)
+                  } else {
+                    console.log('No map actions found in metadata')
+                  }
                 } else if (chunk.type === 'error') {
                   throw new Error(chunk.error || 'Streaming error')
                 }
@@ -163,6 +196,22 @@ export function Chat({
     sendMessage(input)
   }
 
+  const analyzeSelectedArea = () => {
+    if (selectedArea) {
+      const analysisMessage = "Analyse cette zone dessinée sur la carte et identifie les éléments proches, les points d'intérêt, et les opportunités immobilières."
+      sendMessage(analysisMessage, true)
+    }
+  }
+
+  // Track selected area changes without auto-analyzing
+  useEffect(() => {
+    if (selectedArea && selectedArea !== previousAreaRef.current) {
+      console.log('New area selected:', selectedArea.locationInfo.address)
+      // La zone est maintenant disponible pour analyse si l'utilisateur le demande
+    }
+    previousAreaRef.current = selectedArea
+  }, [selectedArea])
+
   const stop = () => {
     setStatus('idle')
   }
@@ -177,6 +226,32 @@ export function Chat({
       </div>
       
       <div className="border-t border-zinc-200 dark:border-zinc-700 p-4">
+        {/* Area context indicator */}
+        {selectedArea && (
+          <div className="mb-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <span className="text-sm font-medium text-green-900 dark:text-green-100">
+                  Zone disponible: {selectedArea.locationInfo.address}
+                </span>
+              </div>
+              <Button
+                onClick={analyzeSelectedArea}
+                size="sm"
+                variant="outline"
+                disabled={status !== 'idle'}
+                className="text-green-600 border-green-300 hover:bg-green-100 dark:text-green-400 dark:border-green-600 dark:hover:bg-green-900/40"
+              >
+                Analyser cette zone
+              </Button>
+            </div>
+            <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+              Surface: {(selectedArea.locationInfo.area / 1000000).toFixed(2)} km² • {selectedArea.coordinates.length} points • Données envoyées au LLM
+            </p>
+          </div>
+        )}
+        
         <MultimodalInput
           input={input}
           setInput={handleInputChange}

@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 import uuid
 import json
 
@@ -42,6 +42,14 @@ class SessionInfo(BaseModel):
     created_at: str
     last_activity: str
     is_active: bool
+
+class AreaAnalysisRequest(BaseModel):
+    coordinates: List[List[float]]
+    area_center: List[float]  
+    area_bounds: List[List[float]]
+    area_size_km2: float
+    location_address: str
+    session_id: Optional[str] = None
 
 @app.get("/")
 async def root():
@@ -179,6 +187,43 @@ async def list_sessions():
         return {"sessions": sessions}
         
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/analyze-area", response_model=MessageResponse)
+async def analyze_area(request: AreaAnalysisRequest):
+    """
+    Endpoint pour analyser une zone dessinée sur la carte.
+    """
+    print(f"Received area analysis request: {request}")  # Debug log
+    try:
+        # Générer un session_id si non fourni
+        session_id = request.session_id or str(uuid.uuid4())
+        print(f"Using session_id: {session_id}")  # Debug log
+        
+        # Créer ou récupérer la session
+        chat_session = session_manager.get_or_create_session(session_id)
+        
+        # Construire le message d'analyse avec les données de zone
+        analysis_message = f"""Analyse cette zone dessinée sur la carte:
+
+DONNÉES DE ZONE:
+- Adresse: {request.location_address}
+- Centre: [{request.area_center[1]}, {request.area_center[0]}] (lat, lng)
+- Superficie: {request.area_size_km2} km²
+- Coordonnées: {len(request.coordinates)} points du polygone
+- Limites SW: [{request.area_bounds[0][1]}, {request.area_bounds[0][0]}]
+- Limites NE: [{request.area_bounds[1][1]}, {request.area_bounds[1][0]}]
+
+Utilise analyze_drawn_area pour analyser cette zone et identifier les éléments proches, points d'intérêt, risques et opportunités."""
+        
+        # Envoyer le message d'analyse
+        response = await chat_session.send_message(analysis_message)
+        print(f"Analysis response: {response}")  # Debug log
+        
+        return MessageResponse(**response)
+        
+    except Exception as e:
+        print(f"Error in area analysis endpoint: {e}")  # Debug log
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

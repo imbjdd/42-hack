@@ -8,6 +8,7 @@ from datetime import datetime
 from agents import Agent, Runner
 from agentX.rev_agent import create_rev_agent
 from openai.types.responses import ResponseTextDeltaEvent
+from tools.map_actions import get_current_map_actions, clear_current_map_actions
 
 
 class ChatSession:
@@ -22,6 +23,7 @@ class ChatSession:
         self.created_at = datetime.now()
         self.last_activity = datetime.now()
         self._last_map_actions = []  # Stocker les dernières actions de carte
+        self.current_map_actions = []  # Actions de carte pour la requête courante
         
         # Agent RevAgent pour l'évaluation immobilière
         self.rev_agent = create_rev_agent()
@@ -39,6 +41,9 @@ class ChatSession:
         try:
             self.last_activity = datetime.now()
             
+            # Effacer les actions de carte précédentes
+            clear_current_map_actions()
+            
             # Traiter le message avec RevAgent en streaming
             result = Runner.run_streamed(
                 self.rev_agent,
@@ -47,9 +52,9 @@ class ChatSession:
             )
             
             full_response = ""
-            map_actions = []
             
             async for event in result.stream_events():
+                print(f"[DEBUG] Stream event type: {event.type}")  # Debug
                 if event.type == "raw_response_event" and isinstance(event.data, ResponseTextDeltaEvent):
                     chunk = event.data.delta
                     full_response += chunk
@@ -62,11 +67,11 @@ class ChatSession:
                         "timestamp": datetime.now().isoformat(),
                     }
                     
-                elif event.type == "tool_call_result":
-                    # Capturer les actions de carte
-                    if hasattr(event.data, 'function') and event.data.function.name == 'action_map':
-                        map_actions.append(event.data.function.arguments)
-                        self._last_map_actions = map_actions  # Stocker pour récupération ultérieure
+                # Les actions de carte sont maintenant gérées automatiquement par les outils
+            
+            # Récupérer les actions de carte
+            map_actions = get_current_map_actions()
+            print(f"[DEBUG] Final map actions: {map_actions}")  # Debug
             
             # Envoyer le message final avec les métadonnées
             yield {
@@ -104,6 +109,9 @@ class ChatSession:
         try:
             self.last_activity = datetime.now()
             
+            # Effacer les actions de carte précédentes
+            clear_current_map_actions()
+            
             # Traiter le message avec RevAgent
             result = await Runner.run(
                 self.rev_agent,
@@ -111,15 +119,9 @@ class ChatSession:
                 session=self.session
             )
             
-            # Extraire les actions de carte des tool calls
-            map_actions = []
-            if hasattr(result, 'raw_responses') and result.raw_responses:
-                for response in result.raw_responses:
-                    if hasattr(response, 'tool_calls') and response.tool_calls:
-                        for tool_call in response.tool_calls:
-                            if tool_call.function.name == 'action_map':
-                                # Récupérer le résultat du tool call
-                                map_actions.append(tool_call.function.arguments)
+            # Récupérer les actions de carte
+            map_actions = get_current_map_actions()
+            print(f"[DEBUG] Non-streaming final map actions: {map_actions}")  # Debug
             
             response = {
                 "success": True,

@@ -20,6 +20,7 @@ export default function Page() {
     locationInfo: LocationInfo;
   } | null>(null)
   const [hasMessages, setHasMessages] = useState(false)
+  const [mapActions, setMapActions] = useState<any[]>([])
 
   const handleAreaSelect = (areaData: { coordinates: number[][]; locationInfo: LocationInfo }) => {
     setSelectedArea(areaData)
@@ -30,14 +31,19 @@ export default function Page() {
     setHasMessages(true)
   }
 
+  const handleMapActions = (actions: any[]) => {
+    console.log('Received map actions in main page:', actions)
+    setMapActions(actions)
+  }
+
   return (
     <div className="h-screen bg-background text-black flex">
       <div className={hasMessages ? "flex-1 border-r border-border" : "w-full"}>
-        <Chat id={id} selectedArea={selectedArea} onFirstMessage={handleFirstMessage} />
+        <Chat id={id} selectedArea={selectedArea} onFirstMessage={handleFirstMessage} onMapActions={handleMapActions} />
       </div>
       {hasMessages && (
         <div className="w-1/2">
-          <MapInterface onAreaSelect={handleAreaSelect} />
+          <MapInterface onAreaSelect={handleAreaSelect} mapActions={mapActions} />
         </div>
       )}
       <Toaster position="top-center" />
