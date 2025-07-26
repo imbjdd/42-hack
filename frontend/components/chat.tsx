@@ -24,6 +24,7 @@ export function Chat({
   id,
   initialMessages = [],
   selectedArea,
+  onFirstMessage,
 }: {
   id: string
   initialMessages?: Message[]
@@ -31,6 +32,7 @@ export function Chat({
     coordinates: number[][];
     locationInfo: LocationInfo;
   } | null
+  onFirstMessage?: () => void
 }) {
   const [sessionId] = useState<string>(id)
   const [messages, setMessages] = useState<Message[]>(initialMessages)
@@ -56,6 +58,11 @@ export function Chat({
     
     setMessages(prev => [...prev, userMessage])
     setInput('')
+
+    // Si c'est le premier message, déclencher l'affichage de la carte
+    if (messages.length === 0) {
+      onFirstMessage?.()
+    }
 
     // Créer le message assistant vide pour le streaming
     const assistantMessageId = generateUUID()

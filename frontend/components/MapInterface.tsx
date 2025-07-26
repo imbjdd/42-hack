@@ -24,7 +24,7 @@ interface MapInterfaceProps {
 
 const MapInterface: React.FC<MapInterfaceProps> = ({ onAreaSelect }) => {
   const [selectedTool, setSelectedTool] = useState<string>("hand");
-  const [mapboxToken, setMapboxToken] = useState<string>("pk.eyJ1IjoibW9lY3phcG9rIiwiYSI6ImNtZGszYzRzYTB0Nmkya3Njem1pNW9hYmMifQ.SFuuVdaiAzL7x8mUmRYqXw");
+  const [mapboxToken, setMapboxToken] = useState<string>(process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "");
 
   // Load token from localStorage after component mounts (client-side only)
   useEffect(() => {

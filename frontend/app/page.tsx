@@ -19,20 +19,27 @@ export default function Page() {
     coordinates: number[][];
     locationInfo: LocationInfo;
   } | null>(null)
+  const [hasMessages, setHasMessages] = useState(false)
 
   const handleAreaSelect = (areaData: { coordinates: number[][]; locationInfo: LocationInfo }) => {
     setSelectedArea(areaData)
     console.log('Area selected in main page:', areaData)
   }
 
+  const handleFirstMessage = () => {
+    setHasMessages(true)
+  }
+
   return (
     <div className="h-screen bg-background text-black flex">
-      <div className="flex-1 border-r border-border">
-        <Chat id={id} selectedArea={selectedArea} />
+      <div className={hasMessages ? "flex-1 border-r border-border" : "w-full"}>
+        <Chat id={id} selectedArea={selectedArea} onFirstMessage={handleFirstMessage} />
       </div>
-      <div className="w-2/3">
-        <MapInterface onAreaSelect={handleAreaSelect} />
-      </div>
+      {hasMessages && (
+        <div className="w-1/2">
+          <MapInterface onAreaSelect={handleAreaSelect} />
+        </div>
+      )}
       <Toaster position="top-center" />
     </div>
   )
