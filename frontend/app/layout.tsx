@@ -3,8 +3,8 @@ import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'RevAgent - Real Estate Evaluation',
-  description: 'Intelligent real estate evaluation system',
+  title: 'Hood.AI',
+  description: 'AI-powered neighborhood analysis and real estate intelligence',
 }
 
 export default function RootLayout({

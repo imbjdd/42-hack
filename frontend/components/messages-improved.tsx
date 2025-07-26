@@ -36,17 +36,12 @@ export const Messages = memo(({ messages, isLoading = false }: MessagesProps) =>
           transition={{ duration: 0.5 }}
           className="text-center space-y-4"
         >
-          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-            <div className="w-8 h-8 bg-muted-foreground/20 rounded-full flex items-center justify-center">
-              <span className="text-lg">Chat</span>
-            </div>
-          </div>
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-foreground">
-              Welcome to the Chat
+            <h3 className="text-xl font-semibold text-foreground">
+              Welcome to Hood.AI
             </h3>
             <p className="text-muted-foreground text-sm max-w-sm">
-              Start a conversation by typing a message below. Once you send your first message, the map will appear to help you explore locations.
+              Ask me about any neighborhood. I'll analyze real estate trends, risks, and opportunities using AI.
             </p>
           </div>
         </motion.div>
