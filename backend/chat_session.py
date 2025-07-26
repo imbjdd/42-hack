@@ -6,7 +6,7 @@ Gère la communication entre le frontend et le RevAgent.
 from typing import Dict, List, Optional, Any, AsyncGenerator
 from datetime import datetime
 from agents import Agent, Runner
-from agentX.rev_agent import create_rev_agent
+from agentX.orchestrator import create_rev_agent
 from openai.types.responses import ResponseTextDeltaEvent
 from tools.map_actions import get_current_map_actions, clear_current_map_actions
 
