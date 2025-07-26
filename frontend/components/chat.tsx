@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { generateUUID } from '@/lib/utils'
-import { Messages } from './messages'
-import { MultimodalInput } from './multimodal-input'
+import { Messages } from './messages-improved'
+import { MultimodalInput } from './multimodal-input-improved'
 import { toast } from './ui/toast'
 import { Button } from './ui/button'
 import { MapPin } from 'lucide-react'
@@ -192,7 +192,6 @@ ${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pou
   }
 
   const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
     sendMessage(input)
   }
 
@@ -217,13 +216,11 @@ ${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pou
   }
 
   return (
-    <div className="flex flex-col h-screen bg-white dark:bg-zinc-900">
-      <div className="flex-1 overflow-y-auto">
-        <Messages 
-          messages={messages} 
-          status={status}
-        />
-      </div>
+    <div className="flex flex-col bg-background h-full">
+      <Messages 
+        messages={messages} 
+        isLoading={status === 'streaming'}
+      />
       
       <div className="border-t border-zinc-200 dark:border-zinc-700 p-4">
         {/* Area context indicator */}
@@ -255,7 +252,7 @@ ${forceAnalysis ? 'INSTRUCTION: Utilise analyze_drawn_area avec ces données pou
         <MultimodalInput
           input={input}
           setInput={handleInputChange}
-          handleSubmit={onSubmit}
+          onSubmit={onSubmit}
           isLoading={status !== 'idle'}
           stop={stop}
         />
