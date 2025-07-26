@@ -403,22 +403,18 @@ def analyze_drawn_area(
 
 def analyze_points_of_interest(lng: float, lat: float, radius_km: float) -> List[Dict[str, Any]]:
     """Analyse les points d'intérêt dans la zone."""
-    # Simuler des points d'intérêt basés sur la localisation
+    # Version simplifiée avec moins de détails
     base_pois = [
-        {"type": "ecole", "name": "École primaire", "distance_km": 0.3, "rating": 4.2},
-        {"type": "metro", "name": "Station de métro", "distance_km": 0.5, "line": "Ligne 1"},
-        {"type": "supermarche", "name": "Supermarché", "distance_km": 0.2, "rating": 4.0},
-        {"type": "hopital", "name": "Hôpital", "distance_km": 1.2, "rating": 4.1},
-        {"type": "parc", "name": "Parc public", "distance_km": 0.4, "surface_m2": 5000},
-        {"type": "restaurant", "name": "Restaurants", "distance_km": 0.1, "count": 15},
-        {"type": "banque", "name": "Agence bancaire", "distance_km": 0.3, "rating": 3.8},
-        {"type": "pharmacie", "name": "Pharmacie", "distance_km": 0.2, "rating": 4.3}
+        {"type": "transport", "name": "Transports", "distance_km": 0.5},
+        {"type": "commerces", "name": "Commerces", "distance_km": 0.3},
+        {"type": "services", "name": "Services publics", "distance_km": 0.8},
+        {"type": "espaces_verts", "name": "Espaces verts", "distance_km": 0.6}
     ]
     
     # Filtrer selon la taille de la zone
     relevant_pois = []
     for poi in base_pois:
-        if poi["distance_km"] <= radius_km * 2:  # Dans un rayon raisonnable
+        if poi["distance_km"] <= radius_km * 2:
             relevant_pois.append(poi)
     
     return relevant_pois
@@ -427,26 +423,9 @@ def analyze_points_of_interest(lng: float, lat: float, radius_km: float) -> List
 def analyze_nearby_elements(lng: float, lat: float, radius_km: float) -> List[Dict[str, Any]]:
     """Analyse les éléments urbains proches."""
     elements = [
-        {
-            "type": "transport",
-            "description": "Réseau de transport bien développé",
-            "details": ["Bus: 3 lignes", "Métro: 2 stations", "Vélib: 4 stations"]
-        },
-        {
-            "type": "commerces",
-            "description": "Zone commerciale active",
-            "details": ["Commerces de proximité: 25+", "Restaurants: 15+", "Services: 10+"]
-        },
-        {
-            "type": "espaces_verts",
-            "description": "Espaces verts accessibles",
-            "details": ["Parcs: 2", "Jardins publics: 3", "Couverture verte: 15%"]
-        },
-        {
-            "type": "securite",
-            "description": "Niveau de sécurité évalué",  
-            "details": ["Éclairage public: Bon", "Patrouilles: Régulières", "Caméras: Présentes"]
-        }
+        {"type": "transport", "description": "Transport accessible"},
+        {"type": "commerces", "description": "Commerces à proximité"},
+        {"type": "espaces_verts", "description": "Espaces verts présents"}
     ]
     
     return elements
@@ -455,67 +434,27 @@ def analyze_nearby_elements(lng: float, lat: float, radius_km: float) -> List[Di
 def get_demographic_insights(lng: float, lat: float, location: str) -> Dict[str, Any]:
     """Génère des insights démographiques pour la zone."""
     return {
-        "population_density": "Moyenne-élevée",
-        "age_groups": {
-            "0-18": "22%",
-            "18-35": "35%", 
-            "35-55": "28%",
-            "55+": "15%"
-        },
-        "income_level": "Moyen-supérieur",
-        "education_level": "Élevé",
-        "family_composition": {
-            "celibataires": "40%",
-            "couples": "35%",
-            "familles": "25%"
-        },
-        "growth_trend": "Croissance modérée (+2% par an)"
+        "population_density": "Moyenne",
+        "income_level": "Moyen",
+        "growth_trend": "Stable"
     }
 
 
 def assess_area_risks(lng: float, lat: float, radius_km: float) -> Dict[str, Any]:
     """Évalue les risques de la zone."""
     return {
-        "climate_risks": {
-            "flood_risk": "Faible",
-            "heat_waves": "Modéré",
-            "air_quality": "Correct"
-        },
-        "market_risks": {
-            "price_volatility": "Faible",
-            "liquidity": "Élevée",
-            "development_pressure": "Modérée"
-        },
-        "infrastructure_risks": {
-            "transport_disruption": "Faible",
-            "utility_reliability": "Élevée",
-            "maintenance_needs": "Standard"
-        },
-        "overall_risk_score": "2.3/5 (Faible à modéré)"
+        "flood_risk": "Faible",
+        "heat_risk": "Modéré",
+        "overall_risk": "Faible"
     }
 
 
 def analyze_infrastructure(lng: float, lat: float, radius_km: float) -> Dict[str, Any]:
     """Analyse l'infrastructure de la zone.""" 
     return {
-        "transport_infrastructure": {
-            "public_transport_score": "8/10",
-            "road_network": "Bien développé",
-            "cycling_infrastructure": "En développement",
-            "parking_availability": "Modérée"
-        },
-        "utilities": {
-            "electricity": "Fiable",
-            "water_supply": "Excellente",
-            "internet_connectivity": "Fibre disponible",
-            "waste_management": "Efficace"
-        },
-        "planned_developments": [
-            "Nouvelle ligne de métro (2026)",
-            "Rénovation du parc central (2025)",
-            "Centre commercial (2027)"
-        ],
-        "infrastructure_score": "7.5/10"
+        "transport_score": "Bon",
+        "utilities": "Fiables",
+        "planned_developments": "Projets en cours"
     }
 
 
