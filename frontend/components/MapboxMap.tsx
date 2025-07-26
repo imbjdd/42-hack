@@ -33,6 +33,7 @@ interface MapboxMapProps {
   selectedTool?: string;
   onToolChange?: (tool: string) => void;
   mapActions?: MapAction[];
+  heatmapEnabled?: boolean;
 }
 
 interface LocationInfo {
@@ -47,7 +48,8 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
   mapboxToken, 
   selectedTool = "hand",
   onToolChange,
-  mapActions = []
+  mapActions = [],
+  heatmapEnabled = false
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -107,6 +109,14 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
       // Add load event listener
       map.current.on('load', () => {
         console.log('Mapbox map loaded and ready!');
+        
+        // Add earthquake data source (sample data for heatmap)
+        map.current?.addSource('earthquakes', {
+          type: 'geojson',
+          data: 'https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson'
+        });
+        console.log('Earthquakes data source added');
+        
       });
 
       map.current.on('error', (e) => {
@@ -385,6 +395,81 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
       }
     });
   }, [mapActions]);
+
+  // Handle heatmap layer toggle
+  useEffect(() => {
+    if (!map.current || !map.current.isStyleLoaded()) return;
+
+    console.log('Heatmap enabled state changed:', heatmapEnabled);
+
+    if (heatmapEnabled) {
+      // Add heatmap layer if it doesn't exist
+      if (!map.current.getLayer('earthquakes-heat')) {
+        try {
+          map.current.addLayer({
+            id: 'earthquakes-heat',
+            type: 'heatmap',
+            source: 'earthquakes',
+            maxzoom: 9,
+            paint: {
+              'heatmap-weight': [
+                'interpolate',
+                ['linear'],
+                ['get', 'mag'],
+                0, 0,
+                6, 1
+              ],
+              'heatmap-intensity': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                0, 1,
+                9, 3
+              ],
+              'heatmap-color': [
+                'interpolate',
+                ['linear'],
+                ['heatmap-density'],
+                0, 'rgba(33,102,172,0)',
+                0.2, 'rgb(103,169,207)',
+                0.4, 'rgb(209,229,240)',
+                0.6, 'rgb(253,219,199)',
+                0.8, 'rgb(239,138,98)',
+                1, 'rgb(178,24,43)'
+              ],
+              'heatmap-radius': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                0, 2,
+                9, 20
+              ],
+              'heatmap-opacity': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                7, 1,
+                9, 0
+              ]
+            }
+          });
+          console.log('Heatmap layer added successfully');
+        } catch (error) {
+          console.error('Error adding heatmap layer:', error);
+        }
+      }
+    } else {
+      // Remove heatmap layer if it exists
+      if (map.current.getLayer('earthquakes-heat')) {
+        try {
+          map.current.removeLayer('earthquakes-heat');
+          console.log('Heatmap layer removed successfully');
+        } catch (error) {
+          console.error('Error removing heatmap layer:', error);
+        }
+      }
+    }
+  }, [heatmapEnabled]);
 
   const clearMarkers = () => {
     if (!map.current) return;

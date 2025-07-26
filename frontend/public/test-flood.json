@@ -1,0 +1,39 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "scenario": "01For",
+        "id_carte": "TEST_1"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [0.540, 46.810],
+          [0.550, 46.810],
+          [0.550, 46.820],
+          [0.540, 46.820],
+          [0.540, 46.810]
+        ]]
+      }
+    },
+    {
+      "type": "Feature", 
+      "properties": {
+        "scenario": "02Moy",
+        "id_carte": "TEST_2"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [0.545, 46.815],
+          [0.555, 46.815],
+          [0.555, 46.825],
+          [0.545, 46.825],
+          [0.545, 46.815]
+        ]]
+      }
+    }
+  ]
+}

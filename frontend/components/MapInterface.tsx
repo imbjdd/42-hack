@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MapPin, Layers, Pentagon, Hand } from "lucide-react";
+import { MapPin, Layers, Search, Pentagon, Hand, ZoomIn, ZoomOut, Circle, Activity } from "lucide-react";
 import TokenInput from "./TokenInput";
 
 // Import MapboxMap dynamically with no SSR
@@ -39,11 +39,13 @@ interface MapAction {
 interface MapInterfaceProps {
   onAreaSelect?: (areaData: { coordinates: number[][]; locationInfo: LocationInfo }) => void;
   mapActions?: MapAction[];
+  onHeatmapToggle?: (enabled: boolean) => void;
 }
 
-const MapInterface: React.FC<MapInterfaceProps> = ({ onAreaSelect, mapActions = [] }) => {
+const MapInterface: React.FC<MapInterfaceProps> = ({ onAreaSelect, mapActions = [], onHeatmapToggle }) => {
   const [selectedTool, setSelectedTool] = useState<string>("hand");
   const [mapboxToken, setMapboxToken] = useState<string>(process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "");
+  const [heatmapEnabled, setHeatmapEnabled] = useState<boolean>(false);
 
   // Load token from localStorage after component mounts (client-side only)
   useEffect(() => {
@@ -90,6 +92,13 @@ const MapInterface: React.FC<MapInterfaceProps> = ({ onAreaSelect, mapActions = 
     setMapboxToken(newToken);
   };
 
+  const handleHeatmapToggle = () => {
+    const newHeatmapState = !heatmapEnabled;
+    setHeatmapEnabled(newHeatmapState);
+    onHeatmapToggle?.(newHeatmapState);
+    console.log('Heatmap toggled:', newHeatmapState ? 'enabled' : 'disabled');
+  };
+
   const formatArea = (areaInSquareMeters: number): string => {
     if (areaInSquareMeters < 10000) {
       return `${Math.round(areaInSquareMeters)} m²`;
@@ -108,6 +117,7 @@ const MapInterface: React.FC<MapInterfaceProps> = ({ onAreaSelect, mapActions = 
           onToolChange={setSelectedTool}
           onAreaSelect={handleAreaSelect}
           mapActions={mapActions}
+          heatmapEnabled={heatmapEnabled}
         />
 
         {/* Token Input Overlay - Always show if no token */}
@@ -156,10 +166,23 @@ const MapInterface: React.FC<MapInterfaceProps> = ({ onAreaSelect, mapActions = 
 
         {/* Layer Controls */}
         <Card className="absolute bottom-4 left-4 p-3 shadow-elegant bg-card/80 backdrop-blur-md border-border/50 z-40">
-          <Button variant="floating" size="sm" className="gap-2" disabled={!mapboxToken}>
-            <Layers className="h-4 w-4" />
-            Layers
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button variant="floating" size="sm" className="gap-2" disabled={!mapboxToken}>
+              <Layers className="h-4 w-4" />
+              Layers
+            </Button>
+            <Button 
+              variant={heatmapEnabled ? "premium" : "floating"} 
+              size="sm" 
+              className="gap-2" 
+              disabled={!mapboxToken}
+              onClick={handleHeatmapToggle}
+              title={heatmapEnabled ? "Hide Heatmap" : "Show Heatmap"}
+            >
+              <Activity className="h-4 w-4" />
+              Heatmap
+            </Button>
+          </div>
         </Card>
 
         {/* Selected Area Info */}
