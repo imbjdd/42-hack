@@ -1,5 +1,5 @@
 """
-Agent spécialisé dans l'analyse des futurs projets de construction et d'infrastructure.
+Specialized agent for future construction and infrastructure projects analysis.
 """
 
 from agents import Agent, Runner, WebSearchTool
@@ -17,40 +17,40 @@ current_date = datetime.now()
 @function_tool
 async def analyze_future_construction(zone_address: str) -> FutureConstructionData:
     """
-    Analyse les futurs projets de construction dans une zone donnée.
+    Analyze future construction projects in a given area.
     
     Args:
-        zone_address: Adresse ou description de la zone à analyser
+        zone_address: Address or description of the area to analyze
         
     Returns:
-        FutureConstructionData: Données structurées sur les projets de construction futurs
+        FutureConstructionData: Structured data on future construction projects
     """
     agent = create_construction_agent()
 
-    result = await Runner.run(agent, f"Voici la zone {zone_address} retourne moi ton analyse",max_turns=3,)
+    result = await Runner.run(agent, f"Here is the area {zone_address}, return your analysis",max_turns=3,)
 
     return result.final_output
 
 
 CONSTRUCTION_AGENT_PROMPT = f"""
-Tu analyses les futurs projets de construction pour une zone donnée.
+You analyze future construction projects for a given area.
 
-TÂCHE: Retourne rapidement un objet FutureConstructionData avec:
-- total_projects: nombre total de projets
-- projects: liste de ConstructionProject avec nom, type, année de livraison, budget, impact trafic, score bénéfice public
-- total_investment_millions: investissement total en millions
-- infrastructure_improvement_score: note sur 10
+TASK: Quickly return a FutureConstructionData object with:
+- total_projects: total number of projects
+- projects: list of ConstructionProject with name, type, delivery year, budget, traffic impact, public benefit score
+- total_investment_millions: total investment in millions
+- infrastructure_improvement_score: score out of 10
 
-RÈGLES:
-- Utilise geocode_address pour localiser
-- Fais UNE recherche: "projet construction infrastructure [zone] 2024"
-- Réponds en moins de 2 minutes
-- Estime des projets réalistes si pas de données précises
+RULES:
+- Use geocode_address to locate
+- Make ONE search: "construction infrastructure project [zone] 2024"
+- Respond in less than 2 minutes
+- Estimate realistic projects if no precise data
 """
 
 
 def create_construction_agent() -> Agent:
-    """Crée l'agent d'analyse des futurs projets de construction."""
+    """Creates the future construction projects analysis agent."""
    
     
     return Agent(

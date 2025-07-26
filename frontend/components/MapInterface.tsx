@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MapPin, Layers, Search, Pentagon, Hand, ZoomIn, ZoomOut, Circle } from "lucide-react";
+import { MapPin, Layers, Pentagon, Hand } from "lucide-react";
 import TokenInput from "./TokenInput";
 
 // Import MapboxMap dynamically with no SSR
@@ -71,8 +71,6 @@ const MapInterface: React.FC<MapInterfaceProps> = ({ onAreaSelect, mapActions = 
   const tools = [
     { id: "hand", icon: Hand, label: "Pan" },
     { id: "polygon", icon: Pentagon, label: "Draw Area" },
-    { id: "circle", icon: Circle, label: "Draw Circle" },
-    { id: "search", icon: Search, label: "Search Location" },
   ];
 
   const handleAreaSelect = (coordinates: number[][], locationInfo: LocationInfo) => {
@@ -154,28 +152,6 @@ const MapInterface: React.FC<MapInterfaceProps> = ({ onAreaSelect, mapActions = 
               </Button>
             ))}
           </div>
-          
-          {/* Debug info */}
-          {mapboxToken && (
-            <div className="mt-2 text-xs text-muted-foreground">
-              <div>Active: {selectedTool}</div>
-              <div>Token: {mapboxToken.substring(0, 10)}...</div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  if (typeof window !== 'undefined') {
-                    localStorage.removeItem('mapbox-token');
-                    setMapboxToken('');
-                    console.log('Token cleared');
-                  }
-                }}
-                className="mt-1 h-6 text-xs"
-              >
-                Reset Token
-              </Button>
-            </div>
-          )}
         </Card>
 
         {/* Layer Controls */}
@@ -198,42 +174,20 @@ const MapInterface: React.FC<MapInterfaceProps> = ({ onAreaSelect, mapActions = 
                   Area Selected
                 </h4>
                 <p className="text-xs text-muted-foreground mb-1 truncate" title={selectedArea.locationInfo.address}>
-                  📍 {selectedArea.locationInfo.address}
+                  {selectedArea.locationInfo.address}
                 </p>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span>📐 {formatArea(selectedArea.locationInfo.area)}</span>
-                  <span>📊 {selectedArea.coordinates.length} points</span>
+                  <span>{formatArea(selectedArea.locationInfo.area)}</span>
+                  <span>{selectedArea.coordinates.length} points</span>
                 </div>
                 <p className="text-xs text-accent font-medium mt-2">
-                  ✨ Ready for AI analysis!
+                  Ready for AI analysis!
                 </p>
               </div>
             </div>
           </Card>
         )}
 
-        {/* Drawing Instructions */}
-        {selectedTool === "polygon" && mapboxToken && (
-          <Card className="absolute bottom-20 left-1/2 transform -translate-x-1/2 p-4 shadow-elegant bg-card/90 backdrop-blur-md border-border/50 z-40">
-            <div className="flex items-center gap-3">
-              <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
-              <span className="text-sm font-medium text-foreground">
-                🎯 Click to outline a neighborhood-sized area • Double-click to finish
-              </span>
-            </div>
-          </Card>
-        )}
-        
-        {selectedTool === "circle" && mapboxToken && (
-          <Card className="absolute bottom-20 left-1/2 transform -translate-x-1/2 p-4 shadow-elegant bg-card/90 backdrop-blur-md border-border/50 z-40">
-            <div className="flex items-center gap-3">
-              <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
-              <span className="text-sm font-medium text-foreground">
-                ⭕ Click center, then drag to set radius • Click again to finish
-              </span>
-            </div>
-          </Card>
-        )}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 """
-Agent spécialisé dans l'analyse des risques d'inondation.
+Specialized agent for flood risk analysis.
 """
 
 from agents import Agent, Runner, WebSearchTool
@@ -15,26 +15,26 @@ current_date = datetime.now()
 
 
 FLOOD_RISK_AGENT_PROMPT = f"""
-Tu analyses les risques d'inondation pour une zone donnée.
+You analyze flood risks for a given area.
 
-TÂCHE: Retourne rapidement un objet FloodRiskData avec:
+TASK: Quickly return a FloodRiskData object with:
 - risk_level: LOW/MEDIUM/HIGH/VERY_HIGH
-- flood_probability_10_years: % (nombre)
-- flood_probability_30_years: % (nombre)
-- water_sources: liste des cours d'eau proches
-- last_major_flood_year: année de dernière inondation majeure
-- flood_zone_classification: classification officielle
+- flood_probability_10_years: % (number)
+- flood_probability_30_years: % (number)
+- water_sources: list of nearby waterways
+- last_major_flood_year: year of last major flood
+- flood_zone_classification: official classification
 
-RÈGLES:
-- Utilise geocode_address pour obtenir les coordonnées
-- Fais UNE seule recherche web: "inondation risque [zone] PPRI"
-- Réponds en moins de 2 minutes
-- Base sur des données réelles si trouvées, sinon estime logiquement
+RULES:
+- Use geocode_address to get coordinates
+- Make ONE web search: "flood risk [zone] PPRI"
+- Respond in less than 2 minutes
+- Base on real data if found, otherwise estimate logically
 """
 
 
 def create_flood_risk_agent() -> Agent:
-    """Crée l'agent d'analyse des risques d'inondation."""
+    """Creates the flood risk analysis agent."""
    
     
     return Agent(
@@ -52,16 +52,16 @@ agent = create_flood_risk_agent()
 @function_tool
 async def analyze_flood_risk(zone_address: str) -> FloodRiskData:
     """
-    Analyse les risques d'inondation pour une zone donnée.
+    Analyze flood risks for a given area.
     
     Args:
-        zone_address: Adresse ou description de la zone à analyser
+        zone_address: Address or description of the area to analyze
         
     Returns:
-        FloodRiskData: Données structurées sur les risques d'inondation
+        FloodRiskData: Structured data on flood risks
     """
     
     
-    result = await Runner.run(agent, f"Voici la zone {zone_address} retourne moi ton analyse",max_turns=3)
+    result = await Runner.run(agent, f"Here is the area {zone_address}, return your analysis",max_turns=3)
     
     return result.final_output

@@ -466,7 +466,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
     console.log('=== AREA SELECTION - COMPREHENSIVE LOG ===');
     
     // Log raw coordinate data
-    console.log('📍 RAW COORDINATES:', {
+    console.log('RAW COORDINATES:', {
       totalPoints: coordinates.length,
       coordinates: coordinates,
       firstPoint: coordinates[0],
@@ -480,7 +480,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
     const bounds = calculatePolygonBounds(coordinates);
     
     // Log geometric calculations
-    console.log('📐 GEOMETRIC CALCULATIONS:', {
+    console.log('GEOMETRIC CALCULATIONS:', {
       center: {
         longitude: center[0],
         latitude: center[1],
@@ -504,16 +504,16 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
     // Get location info via reverse geocoding with detailed logging
     try {
       const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${center[0]},${center[1]}.json?access_token=${mapboxToken}&types=neighborhood,locality,place`;
-      console.log('🌐 GEOCODING REQUEST:', geocodingUrl);
+      console.log('GEOCODING REQUEST:', geocodingUrl);
       
       const response = await fetch(geocodingUrl);
       const data = await response.json();
       
-      console.log('🗺️ FULL GEOCODING RESPONSE:', data);
+      console.log('FULL GEOCODING RESPONSE:', data);
       
       // Log detailed breakdown of geocoding features
       if (data.features && data.features.length > 0) {
-        console.log('📍 LOCATION BREAKDOWN:');
+        console.log('LOCATION BREAKDOWN:');
         data.features.forEach((feature: any, index: number) => {
           console.log(`  ${index + 1}. ${feature.place_type[0].toUpperCase()}:`, {
             name: feature.text,
@@ -529,7 +529,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
         // Log administrative hierarchy
         const primaryFeature = data.features[0];
         if (primaryFeature.context) {
-          console.log('🏛️ ADMINISTRATIVE HIERARCHY:');
+          console.log('ADMINISTRATIVE HIERARCHY:');
           primaryFeature.context.forEach((ctx: any) => {
             console.log(`  ${ctx.id}: ${ctx.text}`, ctx);
           });
@@ -544,10 +544,10 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
       };
 
       // Log final processed data
-      console.log('✅ PROCESSED LOCATION INFO:', locationInfo);
+      console.log('PROCESSED LOCATION INFO:', locationInfo);
       
       // Log additional metadata if available
-      console.log('📊 ADDITIONAL METADATA:', {
+      console.log('ADDITIONAL METADATA:', {
         mapboxAttribution: data.attribution,
         queryCoordinates: data.query,
         totalFeatures: data.features?.length || 0,
@@ -559,11 +559,11 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
       onAreaSelect?.(coordinates, locationInfo);
       onToolChange?.("hand"); // Switch back to pan mode
       
-      console.log('🔄 SWITCHED BACK TO PAN MODE');
+      console.log('SWITCHED BACK TO PAN MODE');
       console.log('=== END AREA SELECTION LOG ===');
       
     } catch (error) {
-      console.error('❌ GEOCODING ERROR:', error);
+      console.error('GEOCODING ERROR:', error);
       
       // Fallback without address but still log what we have
       const locationInfo: LocationInfo = {
@@ -573,7 +573,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
         area: area
       };
       
-      console.log('⚠️ FALLBACK LOCATION INFO (NO GEOCODING):', locationInfo);
+      console.log('FALLBACK LOCATION INFO (NO GEOCODING):', locationInfo);
       onAreaSelect?.(coordinates, locationInfo);
       onToolChange?.("hand");
     }
@@ -669,7 +669,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
           <div className="flex items-center gap-3">
             <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
             <span className="text-sm font-medium text-foreground">
-              ⭕ Click center, then drag to set radius • Click to finish circle
+              Click center, then drag to set radius • Click to finish circle
             </span>
             <Button
               variant="outline"
@@ -691,7 +691,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
               <>
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 <span className="text-sm font-medium text-foreground">
-                  🌍 Finding your location...
+                  Finding your location...
                 </span>
               </>
             )}
@@ -699,7 +699,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
               <>
                 <CheckCircle className="h-4 w-4 text-green-500" />
                 <span className="text-sm font-medium text-foreground">
-                  📍 Location found! Map centered on your position
+                  Location found! Map centered on your position
                 </span>
               </>
             )}
@@ -707,7 +707,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
               <>
                 <XCircle className="h-4 w-4 text-red-500" />
                 <span className="text-sm font-medium text-foreground">
-                  ❌ Location access denied. Using default location
+                  Location access denied. Using default location
                 </span>
               </>
             )}

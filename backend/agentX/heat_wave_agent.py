@@ -1,5 +1,5 @@
 """
-Agent spécialisé dans l'analyse des risques de canicule.
+Specialized agent for heat wave risk analysis.
 """
 
 from agents import Agent, Runner, WebSearchTool
@@ -18,26 +18,26 @@ current_date = datetime.now()
 
 
 HEAT_WAVE_AGENT_PROMPT = f"""
-Tu analyses les risques de canicule pour une zone donnée.
+You analyze heat wave risks for a given area.
 
-TÂCHE: Retourne rapidement un objet HeatWaveRiskData avec:
+TASK: Quickly return a HeatWaveRiskData object with:
 - risk_level: LOW/MEDIUM/HIGH/VERY_HIGH
-- max_temperature_projection_2030: température max prévue en °C
-- max_temperature_projection_2050: température max prévue en °C
+- max_temperature_projection_2030: predicted max temperature in °C
+- max_temperature_projection_2050: predicted max temperature in °C
 - heat_island_effect: "Weak"/"Moderate"/"Strong"
-- green_spaces_percentage: % d'espaces verts
-- cooling_infrastructure_score: note sur 10
+- green_spaces_percentage: % of green spaces
+- cooling_infrastructure_score: score out of 10
 
-RÈGLES:
-- Utilise geocode_address pour localiser
-- Fais UNE recherche: "canicule température [zone] climat"
-- Réponds en moins de 2 minutes
-- Estime logiquement si pas de données précises
+RULES:
+- Use geocode_address to locate
+- Make ONE search: "heat wave temperature [zone] climate"
+- Respond in less than 2 minutes
+- Estimate logically if no precise data
 """
 
 
 def create_heat_wave_agent() -> Agent:
-    """Crée l'agent d'analyse des risques de canicule."""
+    """Creates the heat wave risk analysis agent."""
    
     
     return Agent(
@@ -55,15 +55,15 @@ agent = create_heat_wave_agent()
 @function_tool
 async def analyze_heat_wave_risk(zone_address: str) -> HeatWaveRiskData:
     """
-    Analyse les risques de canicule pour une zone donnée.
+    Analyze heat wave risks for a given area.
     
     Args:
-        zone_address: Adresse ou description de la zone à analyser
+        zone_address: Address or description of the area to analyze
         
     Returns:
-        HeatWaveRiskData: Données structurées sur les risques de canicule
+        HeatWaveRiskData: Structured data on heat wave risks
     """
     
-    result = await Runner.run(agent, f"Voici la zone {zone_address} retourne moi ton analyse",max_turns=3)
+    result = await Runner.run(agent, f"Here is the area {zone_address}, return your analysis",max_turns=3)
     
     return result.final_output
