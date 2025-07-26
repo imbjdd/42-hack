@@ -13,12 +13,24 @@ interface Message {
   timestamp: string
 }
 
+interface LocationInfo {
+  center: [number, number];
+  address: string;
+  bounds: [[number, number], [number, number]];
+  area: number;
+}
+
 export function Chat({
   id,
   initialMessages = [],
+  selectedArea,
 }: {
   id: string
   initialMessages?: Message[]
+  selectedArea?: {
+    coordinates: number[][];
+    locationInfo: LocationInfo;
+  } | null
 }) {
   const [sessionId] = useState<string>(id)
   const [messages, setMessages] = useState<Message[]>(initialMessages)

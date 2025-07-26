@@ -43,7 +43,7 @@ class ChatSession:
             result = Runner.run_streamed(
                 self.rev_agent,
                 user_message,
-                session=self.session
+    #            session=self.session
             )
             
             full_response = ""
