@@ -5,8 +5,7 @@ Gère la communication entre le frontend et le RevAgent.
 
 from typing import Dict, List, Optional, Any, AsyncGenerator
 from datetime import datetime
-from agents.run import Runner
-from agents.memory import SQLiteSession
+from agents import Agent, Runner
 from agentX.rev_agent import create_rev_agent
 from openai.types.responses import ResponseTextDeltaEvent
 
@@ -19,7 +18,7 @@ class ChatSession:
     
     def __init__(self, session_id: str):
         self.session_id = session_id
-        self.session = SQLiteSession(session_id)
+        self.session = {}
         self.created_at = datetime.now()
         self.last_activity = datetime.now()
         self._last_map_actions = []  # Stocker les dernières actions de carte
@@ -155,7 +154,7 @@ class ChatSession:
             Liste des messages formatés
         """
         try:
-            items = await self.session.get_items()
+            items = []
             
             if limit:
                 items = items[-limit:]
@@ -196,7 +195,7 @@ class ChatSession:
         """
         try:
             # Créer une nouvelle session avec le même ID
-            self.session = SQLiteSession(self.session_id)
+            self.session = {}
             return True
         except Exception:
             return False

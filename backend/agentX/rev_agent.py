@@ -2,8 +2,11 @@
 RevAgent - Agent principal d'évaluation immobilière basé sur les signaux futurs.
 """
 
-from agents.agent import Agent
-from map_actions import action_map
+from agents import Agent
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from tools.map_actions import action_map
 
 REV_AGENT_PROMPT = """
 Tu es RevAgent, un expert en évaluation immobilière basée sur les signaux futurs.
