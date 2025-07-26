@@ -108,9 +108,9 @@ const MapInterface: React.FC<MapInterfaceProps> = ({ onAreaSelect, mapActions = 
   };
 
   return (
-    <div className="relative flex-1 bg-gradient-surface overflow-hidden h-screen">
+    <div className="relative flex-1 bg-gradient-surface overflow-hidden h-full">
       {/* Map Container */}
-      <div className="w-full h-full relative" style={{ minHeight: '100vh' }}>
+      <div className="w-full h-full relative">
         <MapboxMap 
           mapboxToken={mapboxToken}
           selectedTool={selectedTool}
