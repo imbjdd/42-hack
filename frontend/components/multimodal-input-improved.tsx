@@ -68,7 +68,7 @@ export function MultimodalInput({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="flex items-end gap-3">
+      <div className="flex items-center gap-3">
         <div className="flex-1 relative">
           <Textarea
             ref={textareaRef}
@@ -110,12 +110,9 @@ export function MultimodalInput({
         </div>
       </div>
       
-      <div className="flex items-center justify-between mt-2 px-2">
+      <div className="flex items-center justify-start mt-2 px-2">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>Press Enter to send, Shift+Enter for new line</span>
-        </div>
-        <div className="text-xs text-muted-foreground">
-          {input.length}/2000
         </div>
       </div>
     </motion.div>

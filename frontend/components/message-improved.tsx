@@ -3,7 +3,7 @@
 import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { Bot, User } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 
 interface Message {
   id: string
@@ -22,31 +22,14 @@ export const PreviewMessage = memo(
     return (
       <motion.div
         className={cn(
-          'flex w-full gap-4 rounded-lg p-4',
+          'w-full rounded-lg p-4',
           message.role === 'user' ? 'bg-muted/30' : 'bg-background'
         )}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="flex-shrink-0">
-          <div
-            className={cn(
-              'flex h-8 w-8 items-center justify-center rounded-full',
-              message.role === 'user'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground'
-            )}
-          >
-            {message.role === 'user' ? (
-              <User className="h-4 w-4" />
-            ) : (
-              <Bot className="h-4 w-4" />
-            )}
-          </div>
-        </div>
-        
-        <div className="flex-1 space-y-2">
+        <div className="w-full space-y-2">
           <div className="prose prose-sm max-w-none dark:prose-invert">
             {isLoading ? (
               <div className="flex items-center space-x-2">
@@ -58,22 +41,35 @@ export const PreviewMessage = memo(
                 <span className="text-muted-foreground text-sm">Thinking...</span>
               </div>
             ) : (
-              <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+              <ReactMarkdown 
+                className="text-foreground leading-relaxed"
+                components={{
+                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                  h1: ({ children }) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
+                  h2: ({ children }) => <h2 className="text-lg font-semibold mb-2">{children}</h2>,
+                  h3: ({ children }) => <h3 className="text-base font-semibold mb-1">{children}</h3>,
+                  ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
+                  ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
+                  li: ({ children }) => <li className="mb-1">{children}</li>,
+                  code: ({ children, className }) => {
+                    const isInline = !className;
+                    return isInline ? (
+                      <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono">{children}</code>
+                    ) : (
+                      <code className="block bg-muted p-2 rounded text-sm font-mono overflow-x-auto">{children}</code>
+                    );
+                  },
+                  pre: ({ children }) => <pre className="bg-muted p-2 rounded mb-2 overflow-x-auto">{children}</pre>,
+                  blockquote: ({ children }) => <blockquote className="border-l-4 border-muted-foreground pl-4 italic mb-2">{children}</blockquote>,
+                  a: ({ children, href }) => <a href={href} className="text-primary underline hover:no-underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+                  strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                  em: ({ children }) => <em className="italic">{children}</em>,
+                }}
+              >
                 {message.content}
-              </p>
+              </ReactMarkdown>
             )}
           </div>
-          
-          {!isLoading && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <time>
-                {new Date(message.timestamp).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </time>
-            </div>
-          )}
         </div>
       </motion.div>
     )
